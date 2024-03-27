@@ -27,33 +27,51 @@ export default function EditProfileModal({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<User | null>(null); // The current user
-  const [loading, setLoading] = useState<boolean>(false); // Whether the submission is loading
-  const [success, setSuccess] = useState<boolean>(false); // Whether the listing was successfully created
-  
-  const [password, setPassword] = useState(""); // The password of the user
-  const [bio, setBio] = useState(""); // The bio of the user
-  const [profilePic, setProfilePic] = useState(""); // The profile picture of the user
-  const [shippingAddress, setShippingAddress] = useState(""); // The shipping address of the user
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(false);
 
-  /* 
-    On page load, get the current user.
-  */
+  const [password, setPassword] = useState("");
+  const [bio, setBio] = useState("");
+  const [profilePic, setProfilePic] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+
   useEffect(() => {
-    /*
-      TODO: Get the current session, and if the user is logged in, get the user from the database and
-      update the user state, bio state, profilePic state, shippingAddress state, and password state.
-    */
-
+    const fetchUser = async () => {
+      const session = await getSession();
+      if (session) {
+        const fetchedUser = await getUser(session.user.name);
+        setUser(fetchedUser);
+        setBio(fetchedUser.bio || "");
+        setProfilePic(fetchedUser.profilePic || "");
+        setShippingAddress(fetchedUser.shippingAddress || "");
+      }
+    };
+    fetchUser();
   }, []);
 
-  /* 
-    TODO: Implement the onSubmit function. This function should update the user in the database and 
-    update the user state with the new information.
-  */
   const onSubmit = async () => {
-    
-  }
+    setLoading(true);
+    try {
+      if (user) {
+        const updatedUser: User = {
+          ...user,
+          bio,
+          profilePic,
+          shippingAddress,
+        };
+        await updateUser(updatedUser);
+        setSuccess(true);
+        setTimeout(() => {
+          setSuccess(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog>
@@ -62,8 +80,7 @@ export default function EditProfileModal({
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you&apos;re
-            done.
+            Make changes to your profile here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -74,7 +91,7 @@ export default function EditProfileModal({
             <Input
               id="profilePic"
               value={profilePic}
-              onChange={(e: any) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setProfilePic(e.target.value);
               }}
               className="col-span-3"
@@ -87,7 +104,7 @@ export default function EditProfileModal({
             <Textarea
               id="bio"
               value={bio}
-              onChange={(e: any) => {
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setBio(e.target.value);
               }}
               className="col-span-3"
@@ -100,7 +117,7 @@ export default function EditProfileModal({
             <Input
               id="shippingAddress"
               value={shippingAddress}
-              onChange={(e: any) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setShippingAddress(e.target.value);
               }}
               className="col-span-3"

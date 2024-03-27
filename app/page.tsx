@@ -16,6 +16,8 @@ import { getItems } from "@/db/utils";
 import { Item } from "@/db/schema";
 import { SORTS, Sort, valueToSort } from "@/lib/sorting";
 import { SessionProvider } from "next-auth/react";
+import { AiOutlineAlert } from 'react-icons/ai'; // Importing the AlertTriangle icon from react-icons
+import LoadingIndicator from "././seller/[sellerId]/loadingIndicator";
 
 /* 
   This is the main page of the marketplace app. It is responsible for rendering the list of all 
@@ -48,12 +50,18 @@ export default function Home() {
       Otherwise, leave the category state variable as null.
       HINT: Use the valueToCategory function to convert the category param to a Category object.
     */
+      if (categoryParam) {
+        setCategory(valueToCategory(categoryParam));
+      } else {
+        setCategory(null);
+      }
 
     /* 
       TODO: If the search param is set, set the search state variable to the corresponding search query.
       Otherwise, leave the search state variable as an empty string.
     */
-    
+      setSearch(searchParam ? searchParam : "");
+
   }, []);
 
   /* 
@@ -70,19 +78,42 @@ export default function Home() {
     if (searchParam && !search) {
       return;
     }
-    
-    /*
-      TODO: Set the isLoading state variable to true.
-    */
 
-    /* 
+    /*
+      TODO: Set the isLoading state variable to true. 
+    */
+    setIsLoading(true);
+
+    /*
       TODO: Get the items from the database with the correct filters and sorting method. Then, update
       the items state variable and set the isLoading state variable to false.
-
-      HINT: Filter for only listed items as well. 
+  
+      HINT: Filter for only listed items as well.
     */
-    
+    const fetchItems = async () => {
+      try {
+        let categoryFilter = category;
+        if (!categoryFilter) {
+          categoryFilter = undefined;
+        }
+
+        let sortFilter: string | undefined = sorting;
+        if (!sortFilter) {
+          sortFilter = undefined;
+        }
+
+        const items = await getItems();
+        setItems(items);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchItems();
   }, [sorting, category, search]);
+
 
   return (
     <div className="bg-[#f4f7f7] flex flex-col gap-4 items-center py-4 ">
@@ -191,10 +222,11 @@ export default function Home() {
       )}
       {items.length === 0 && !isLoading && (
         <div className="flex flex-col justify-center items-center w-full h-full">
-          <AlertTriangle className="w-16 h-16 text-yellow-400" />
+          <LoadingIndicator />
           <span className="text-xl">No listings found</span>
         </div>
       )}
+
       <SessionProvider>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 h-full">
           {items

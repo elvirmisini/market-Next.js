@@ -19,46 +19,45 @@ export default function ReviewListForTarget({ target }: { target: string }) {
     On page load and whenever the target changes, get the current user and the reviews for the target.
   */
   useEffect(() => {
-    /* 
-      TODO: Set loading to true.
-    */
+    setLoading(true); // Set loading to true
 
-    /*
-      TODO: Get the reviews for the target and update the reviews state.
-    */    
-    
+    // Get the reviews for the target
+    getReviewsForTarget(target).then((reviews: Rating[]) => {
+      setReviews(reviews); // Update the reviews state
+      setLoading(false); // Set loading to false after fetching reviews
+    });
   }, [target]);
 
-
   /*
-    TODO: If the page is loading, display the provided loading message.
-    ```
-    <div className="flex flex-col gap-4 items-center py-4 h-full">
-      <span className="text-2xl text-gray-500">Loading...</span>
-    </div>
-    ```
+    If the page is loading, display the provided loading message.
   */
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4 items-center py-4 h-full">
+        <span className="text-2xl text-gray-500">Loading...</span>
+      </div>
+    );
+  }
 
   /*
-    TODO: If there are no reviews, display a message saying so.
-    ```
-    <div className="flex flex-col gap-4 items-center py-4 h-full">
-      <span className="text-2xl text-gray-500">No reviews yet</span>
-    </div>
-    ```
+    If there are no reviews, display a message saying so.
   */
+  if (reviews.length === 0) {
+    return (
+      <div className="flex flex-col gap-4 items-center py-4 h-full">
+        <span className="text-2xl text-gray-500">No reviews yet</span>
+      </div>
+    );
+  }
 
   /*
-    TODO: Otherwise, display the reviews.
+    Otherwise, display the reviews.
   */
   return (
     <div className="flex flex-col gap-4 items-center py-4 h-full w-full">
-      {
-        /* 
-          TODO: Map through each of the reviews and display a ReviewCard component for each one.
-        */
-        "PLACEHOLDER"
-      }
+      {reviews.map((review: Rating) => (
+        <ReviewCard key={review.id} review={review} />
+      ))}
     </div>
   );
 }

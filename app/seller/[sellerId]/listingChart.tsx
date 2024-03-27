@@ -16,33 +16,38 @@ import { Item, User } from "@/db/schema";
 import { SORTS, Sort, valueToSort } from "@/lib/sorting";
 import { CATEGORIES, Category, valueToCategory } from "@/lib/categories";
 
-/* 
-  This ListingChart component is loaded on the client side and is responsible for retrieving
-  and displaying the listings for a given seller.
-*/
 export default function ListingChart({ seller }: { seller: User }) {
-  const [items, setItems] = useState<Item[]>([]); // The seller's listings 
+  const [items, setItems] = useState<Item[]>([]);
+  const [sorting, setSorting] = useState<Sort | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [listed, setListed] = useState<boolean>(true);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(10);
 
-  const [sorting, setSorting] = useState<Sort | null>(null); // The sorting method
-  const [category, setCategory] = useState<Category | null>(null); // The category
-  const [listed, setListed] = useState<boolean>(true); // Whether to show listed or unlisted items
 
-  const [pageNumber, setPageNumber] = useState(1); // The current page number
-  const [pageSize] = useState(10); // The number of items per page
 
-  /* 
-    On page load and whenever the sorting, category, or listed state changes, get the items.
-  */
+
+  let list_param=true
+  if(listed){
+    list_param=false
+  }
   useEffect(() => {
-    /* 
-      TODO: Get the items with the given parameters and update the items state.
-      HINT: Use the following parameters:
-        - user: The seller's username
-        - sort: The sorting method
-        - category: The category
-        - listed: Whether to show listed or unlisted items
-    */
-    
+    const fetchItems = async () => {
+      try {
+        const fetchedItems = await getItems({
+          user: seller.username,
+          sort: sorting?.value,
+          category: category?.value,
+          listed:list_param,
+        });
+        setItems(fetchedItems);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+        setItems([]);
+      }
+    };
+
+    fetchItems();
   }, [sorting, category, listed, seller]);
 
   return (
@@ -67,11 +72,9 @@ export default function ListingChart({ seller }: { seller: User }) {
           <Select
             value={category?.value}
             onValueChange={(value) => {
-              if (value === category?.value) {
-                setCategory(null);
-              } else {
-                setCategory(valueToCategory(value));
-              }
+              setCategory(
+                value === category?.value ? null : valueToCategory(value)
+              );
             }}
           >
             <SelectTrigger className="w-[180px]">
@@ -88,11 +91,7 @@ export default function ListingChart({ seller }: { seller: User }) {
           <Select
             value={sorting?.value}
             onValueChange={(value) => {
-              if (value === sorting?.value) {
-                setSorting(null);
-              } else {
-                setSorting(valueToSort(value));
-              }
+              setSorting(value === sorting?.value ? null : valueToSort(value));
             }}
           >
             <SelectTrigger className="w-[180px] focus-visible:ring-0 focus:ring-0">
@@ -108,24 +107,18 @@ export default function ListingChart({ seller }: { seller: User }) {
           </Select>
         </div>
       </div>
-      {
-        /*
-          TODO: If there are no items, display the provided loading message. 
-          ```
-          <div className="flex flex-col justify-center items-center w-full h-full">
-            <AlertTriangle className="w-16 h-16 text-yellow-400" />
-            <span className="text-xl">No listings found</span>
-          </div>
-          ```
-        */
-      }
+      {items.length === 0 && (
+        <div className="flex flex-col justify-center items-center w-full h-full">
+          <AlertTriangle className="w-16 h-16 text-yellow-400" />
+          <span className="text-xl">No listings found</span>
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 h-full">
-        {
-          /*
-            TODO: Paginate the items and map over each item and return an ItemCard component with the itemId prop set to the item's id.
-          */
-          "PLACEHOLDER"
-        }
+        {items
+          .slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
+          .map((item) => (
+            <ItemCard key={item.id} itemId={item.id} />
+          ))}
       </div>
       <div className="flex flex-row justify-center items-center gap-4">
         {pageNumber > 1 && (

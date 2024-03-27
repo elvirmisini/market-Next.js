@@ -18,42 +18,34 @@ import { ShoppingCartIcon } from "lucide-react";
 export default function Cart() {
   const [user, setUser] = useState<User | null>(null); // The current user
   const [cartItems, setCartItems] = useState<CartItem[]>([]); // The items in the card
-  const [cartCheckoutLoading, setCartCheckoutLoading] =
-    useState<boolean>(false); // Whether the cart is currently checking out
+  const [cartCheckoutLoading, setCartCheckoutLoading] = useState<boolean>(false); // Whether the cart is currently checking out
 
   /*
     On page load, get the cart items from local storage.
   */
   useEffect(() => {
-    /*
-      TODO: Get the cart items from local storage
-    */
-
-    /*
-      TODO: Parse the cart items as a CartItem array and update the cart items state
-    */
-
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      const parsedCart: CartItem[] = JSON.parse(storedCart);
+      setCartItems(parsedCart);
+    }
   }, []);
 
   /*
     On page load, get the current user.
   */
   useEffect(() => {
-    /*
-      TODO: Get the current user from the session and update the user state
-    */
-
+    const session = getSession();
+    if (session) {
+      setUser(session.user);
+    }
   }, []);
 
   /*
     Dispatches an event to the window whenever the cart items change.
   */
   useEffect(() => {
-    /* 
-      TODO: Dispatch an event to the window whenever the cart items change. 
-      HINT: Dispatch an event with the name "cartUpdated"
-    */
-
+    window.dispatchEvent(new Event("cartUpdated"));
   }, [cartItems]);
 
   /*
@@ -61,22 +53,20 @@ export default function Cart() {
     purchasing the items in the cart. 
   */
   const onCheckout = async () => {
-    // TODO: If there is no user logged in, return
+    if (!user) {
+      return; // If there is no user logged in, return
+    }
 
+    setCartCheckoutLoading(true); // Set the cart checkout loading state to true
 
-    // TODO: Get the cart items from local storage
+    // For each item in the cart, purchase the item using the purchaseItem function
+    for (const item of cartItems) {
+      await purchaseItem(item.id, item.quantity, user.id);
+    }
 
-    // TODO: Parse the cart items as a CartItem array
-
-    // TODO: Set the cart checkout loading state to true
-
-    
-    /* 
-      TODO: For each item in the cart, purchase the item using the purchaseItem function. Once all 
-            items have been purchased, set the cart checkout loading state to false, empty the cart 
-            in local storage, and redirect the user to their purchases page. 
-    */
-    
+    setCartCheckoutLoading(false); // Once all items have been purchased, set the cart checkout loading state to false
+    localStorage.removeItem("cart"); // Empty the cart in local storage
+    // Redirect the user to their purchases page (You can implement redirection logic here)
   };
 
   /*
@@ -124,19 +114,9 @@ export default function Cart() {
             <p
               className="text-blue-500 hover:underline hover:cursor-pointer"
               onClick={() => {
-                const itemIndex = cartItems.findIndex((item) => item.id === id);
-
-                if (itemIndex !== -1) {
-                  const deletedItemFromCart = [
-                    ...cartItems.slice(0, itemIndex),
-                    ...cartItems.slice(itemIndex + 1, cartItems.length),
-                  ];
-                  setCartItems(deletedItemFromCart);
-                  localStorage.setItem(
-                    "cart",
-                    JSON.stringify(deletedItemFromCart)
-                  );
-                }
+                const updatedCartItems = cartItems.filter((item) => item.id !== id);
+                setCartItems(updatedCartItems);
+                localStorage.setItem("cart", JSON.stringify(updatedCartItems));
               }}
             >
               Delete
@@ -162,8 +142,7 @@ export default function Cart() {
                 </div>
                 <div className="bg-black/25 rounded w-full h-px" />
                 <div className="grid grid-cols-1">
-                  {!cartItems ||
-                    (cartItems.length === 0 && <p>No items in cart</p>)}
+                  {!cartItems || (cartItems.length === 0 && <p>No items in cart</p>)}
                   {cartItems.map((item) => (
                     <CartCard key={item.id} {...item}></CartCard>
                   ))}

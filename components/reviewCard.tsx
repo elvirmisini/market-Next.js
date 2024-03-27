@@ -14,15 +14,22 @@ export default function ReviewCard(
   { review }: { review: Rating }
 ) {
   const [author, setAuthor] = useState<User | null>(null); // The author of the review
+  const [formattedDate, setFormattedDate] = useState<string>(""); // Formatted date of review creation
 
   /*
     On page load and whenever the review changes, get the author of the review.
   */
   useEffect(() => {
-    /* 
-      TODO: Get the author of the review and update the author state.
-    */
-    
+    if (review) {
+      getUser(review.author).then((user: User | null) => {
+        setAuthor(user); // Update the author state
+      });
+
+      // Format the review date
+      const date = new Date(review.createdAt);
+      const formatted = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      setFormattedDate(formatted);
+    }
   }, [review]);
 
   return (
@@ -57,21 +64,11 @@ export default function ReviewCard(
         }
       </div>
       <span className="text-gray-500">
-        Reviewed on {
-          /* 
-            TODO: Display the formatted date the review was created.
-          */
-          "PLACEHOLDER"
-        }
+        Reviewed on {formattedDate}
       </span>
       <div>
         <span>
-          {
-            /* 
-              TODO: Display the review comment.
-            */
-            "PLACEHOLDER"
-          }
+          {review.comment}
         </span>
       </div>
     </div>

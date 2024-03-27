@@ -20,34 +20,36 @@ import {
   CardFooter,
 } from "./ui/card";
 
-/* 
-  This component is responsible for rendering the item card.
-*/
 export default function ItemCard({ itemId }: { itemId: string }) {
-  const [user, setUser] = useState<User | null>(null); // The current user
-  const [item, setItem] = useState<Item | null>(null); // The current item
-  const [isWatched, setIsWatched] = useState(false); // Whether the item is on the user's watch list
+  const [user, setUser] = useState<User | null>(null);
+  const [item, setItem] = useState<Item | null>(null);
+  const [isWatched, setIsWatched] = useState(false);
 
-  const { data: session } = useSession(); // The current session
+  const { data: session } = useSession();
 
-  /* 
-    On page load, get the current item and user.
-  */
   useEffect(() => {
-    /* 
-      TODO: Get the current item and user, and if the user is logged in, check if the item is on the 
-      user's watch list. Update the item, user, and isWatched states.
-    */
-    
+    const fetchData = async () => {
+      // Fetch the item by ID
+      const fetchedItem = await getItemById(itemId);
+      setItem(fetchedItem);
+
+      // Fetch the user data if logged in
+      if (session?.user) {
+        const fetchedUser = await getUser(session.user.name);
+        setUser(fetchedUser);
+
+        // Check if the item is on the user's watch list
+        const watching = await isUserWatchingItem(session.user.name, itemId);
+        
+        setIsWatched(watching);
+      }
+    };
+
+    fetchData();
   }, [itemId, session]);
 
-  /* 
-    If the item is null, return an empty fragment (`<></>`).
-  */
-
-  /* 
-    TODO: Otherwise, return the following UI: 
-    ```
+  if (!item)  return (<></>); // If item is null, return empty fragment
+  return (
     <a href={`/item/${item.owner}/${item.id}`}>
       <Card className="hover:scale-105 transform transition duration-300 ">
         <CardHeader className="px-0 py-0">
@@ -99,8 +101,5 @@ export default function ItemCard({ itemId }: { itemId: string }) {
         </CardFooter>
       </Card>
     </a>
-    ```
-  */
-
-  return <></>; // PLACEHOLDER
+  );
 }

@@ -11,24 +11,25 @@ import { User } from "@/db/schema";
 import { Star } from "lucide-react";
 
 export default function SellerStats({ seller }: { seller: User }) {
-  const [numberOfSales, setNumberOfSales] = useState(0); // The number of sales the seller has made
-  const [numberOfPurchases, setNumberOfPurchases] = useState(0); // The number of purchases the seller has made
-  const [stars, setStars] = useState<number | null>(null); // The seller's average rating
-  const [ratingCount, setRatingCount] = useState(0); // The number of ratings the seller has received
+  const [numberOfSales, setNumberOfSales] = useState(0);
+  const [numberOfPurchases, setNumberOfPurchases] = useState(0);
+  const [stars, setStars] = useState<number | null>(null);
+  const [ratingCount, setRatingCount] = useState(0);
 
-  /*  
-    On page load and when the seller changes, get the seller's stats and update the state variables 
-    accordingly.
-  */
   useEffect(() => {
-    /* 
-      TODO: Get and update the seller's stats. 
-      - The number of sales the seller has made
-      - The number of purchases the seller has made
-      - The seller's average rating
-      - The number of ratings the seller has received
-    */
-    
+    const fetchSellerStats = async () => {
+      const sales = await getUserNumberOfSales(seller.username);
+      const purchases = await getUserNumberOfPurchases(seller.username);
+      const avgStars = await getStarsForTarget(seller.username);
+      const ratingsCount = await getNumberOfRatingsForTarget(seller.username);
+
+      setNumberOfSales(sales);
+      setNumberOfPurchases(purchases);
+      setStars(avgStars);
+      setRatingCount(ratingsCount);
+    };
+
+    fetchSellerStats();
   }, [seller]);
 
   return (

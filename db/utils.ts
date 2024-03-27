@@ -104,7 +104,7 @@ export async function addNewItem(
 
 /* 
   Gets all items from the database that match the given query parameters.
-*/
+*/ 
 export async function getItems(queryParams?: ItemQueryFilters) {
   const baseUrl = `http://localhost:3000/api/items`;
   const userQuery = queryParams?.user ? `user=${queryParams.user}` : "";
